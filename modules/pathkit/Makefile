@@ -62,6 +62,15 @@ npm-bazel:
 	cp CHANGELOG.md ./npm-wasm
 	cp CHANGELOG.md ./npm-asmjs
 
+.PHONY: npm-whiteboard
+npm-whiteboard:
+    rm -rf ./npm-wasm-wb/bin
+	mkdir -p ./npm-wasm-wb/bin
+	./compile.sh
+	cp ${PATHKIT_GN_BIN_DIR}/pathkit.js   ./npm-wasm-wb/bin
+	cp ${PATHKIT_GN_BIN_DIR}/pathkit.wasm ./npm-wasm-wb/bin
+	cp CHANGELOG.md ./npm-wasm-wb
+
 .PHONY: test-continuous
 test-continuous:
 	echo "Assuming npm ci has been run by user"
