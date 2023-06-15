@@ -64,7 +64,7 @@ npm-bazel:
 
 .PHONY: npm-whiteboard
 npm-whiteboard:
-    rm -rf ./npm-wasm-wb/bin
+	rm -rf ./npm-wasm-wb/bin
 	mkdir -p ./npm-wasm-wb/bin
 	./compile.sh
 	cp ${PATHKIT_GN_BIN_DIR}/pathkit.js   ./npm-wasm-wb/bin
