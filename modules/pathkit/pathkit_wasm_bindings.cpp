@@ -82,6 +82,42 @@ JSArray EMSCRIPTEN_KEEPALIVE ToCmds(const SkPath& path) {
     return cmds;
 }
 
+JSArray EMSCRIPTEN_KEEPALIVE ToNonConicCmds(const SkPath& path) {
+    JSArray cmds = emscripten::val::array();
+    for (auto [verb, pts, w] : SkPathPriv::Iterate(path)) {
+        JSArray cmd = emscripten::val::array();
+        switch (verb) {
+        case SkPathVerb::kMove:
+            cmd.call<void>("push", MOVE, pts[0].x(), pts[0].y());
+            break;
+        case SkPathVerb::kLine:
+            cmd.call<void>("push", LINE, pts[1].x(), pts[1].y());
+            break;
+        case SkPathVerb::kQuad:
+            cmd.call<void>("push", QUAD, pts[1].x(), pts[1].y(), pts[2].x(), pts[2].y());
+            break;
+        case SkPathVerb::kConic:
+            SkPoint quads[5];
+            // approximate with 2^1=2 quads.
+            SkPath::ConvertConicToQuads(pts[0], pts[1], pts[2], *w, quads, 1);
+            cmd.call<void>("push", QUAD, quads[1].x(), quads[1].y(), quads[2].x(), quads[2].y());
+            cmd.call<void>("push", QUAD, quads[3].x(), quads[3].y(), quads[4].x(), quads[4].y());
+            break;
+        case SkPathVerb::kCubic:
+            cmd.call<void>("push", CUBIC,
+                           pts[1].x(), pts[1].y(),
+                           pts[2].x(), pts[2].y(),
+                           pts[3].x(), pts[3].y());
+            break;
+        case SkPathVerb::kClose:
+            cmd.call<void>("push", CLOSE);
+            break;
+        }
+        cmds.call<void>("push", cmd);
+    }
+    return cmds;
+}
+
 // This type signature is a mess, but it's necessary. See, we can't use "bind" (EMSCRIPTEN_BINDINGS)
 // and pointers to primitive types (Only bound types like SkPoint). We could if we used
 // cwrap (see https://becominghuman.ai/passing-and-returning-webassembly-array-parameters-a0f572c65d97)
@@ -518,6 +554,7 @@ EMSCRIPTEN_BINDINGS(skia) {
 
         // Exporting
         .function("toCmds", &ToCmds)
+        .function("toNonConicCmds", &ToNonConicCmds)
         .function("toPath2D", &ToPath2D)
         .function("toCanvas", &ToCanvas)
         .function("toSVGString", &ToSVGString)
