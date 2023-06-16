@@ -84,37 +84,50 @@ JSArray EMSCRIPTEN_KEEPALIVE ToCmds(const SkPath& path) {
 
 JSArray EMSCRIPTEN_KEEPALIVE ToNonConicCmds(const SkPath& path) {
     JSArray cmds = emscripten::val::array();
-    for (auto [verb, pts, w] : SkPathPriv::Iterate(path)) {
+
+    const auto append_command = [&](int verb, const SkPoint pts[], size_t count) {
         JSArray cmd = emscripten::val::array();
-        switch (verb) {
-        case SkPathVerb::kMove:
-            cmd.call<void>("push", MOVE, pts[0].x(), pts[0].y());
-            break;
-        case SkPathVerb::kLine:
-            cmd.call<void>("push", LINE, pts[1].x(), pts[1].y());
-            break;
-        case SkPathVerb::kQuad:
-            cmd.call<void>("push", QUAD, pts[1].x(), pts[1].y(), pts[2].x(), pts[2].y());
-            break;
-        case SkPathVerb::kConic:
-            SkPoint quads[5];
-            // approximate with 2^1=2 quads.
-            SkPath::ConvertConicToQuads(pts[0], pts[1], pts[2], *w, quads, 1);
-            cmd.call<void>("push", QUAD, quads[1].x(), quads[1].y(), quads[2].x(), quads[2].y());
-            cmd.call<void>("push", QUAD, quads[3].x(), quads[3].y(), quads[4].x(), quads[4].y());
-            break;
-        case SkPathVerb::kCubic:
-            cmd.call<void>("push", CUBIC,
-                           pts[1].x(), pts[1].y(),
-                           pts[2].x(), pts[2].y(),
-                           pts[3].x(), pts[3].y());
-            break;
-        case SkPathVerb::kClose:
-            cmd.call<void>("push", CLOSE);
-            break;
+        cmd.call<void>("push", verb);
+
+        for (size_t i = 0; i < count; ++i) {
+            cmd.call<void>("push", pts[i].x(), pts[i].y());
         }
+
         cmds.call<void>("push", cmd);
+    };
+
+    SkPath::Iter iter(path, false);
+    SkPoint pts[4];
+    SkPath::Verb verb;
+    while ((verb = iter.next(pts)) != SkPath::kDone_Verb) {
+        switch (verb) {
+            case SkPath::kMove_Verb:
+                append_command(MOVE, &pts[0], 1);
+                break;
+            case SkPath::kLine_Verb:
+                append_command(LINE, &pts[1], 1);
+                break;
+            case SkPath::kQuad_Verb:
+                append_command(QUAD, &pts[1], 2);
+                break;
+            case SkPath::kConic_Verb:
+                SkPoint quads[5];
+                // approximate with 2^1=2 quads.
+                SkPath::ConvertConicToQuads(pts[0], pts[1], pts[2], iter.conicWeight(), quads, 1);
+                append_command(QUAD, &quads[1], 2);
+                append_command(QUAD, &quads[3], 2);
+                break;
+            case SkPath::kCubic_Verb:
+                append_command(CUBIC, &pts[1], 3);
+                break;
+            case SkPath::kClose_Verb:
+                append_command(CLOSE, nullptr, 0);
+                break;
+            case SkPath::kDone_Verb:
+                break;
+        }
     }
+
     return cmds;
 }
 
@@ -240,7 +253,13 @@ void ApplyQuadTo(SkPath& p, SkScalar x1, SkScalar y1, SkScalar x2, SkScalar y2) 
     p.quadTo(x1, y1, x2, y2);
 }
 
+void ApplyReset(SkPath& p) {
+    p.reset();
+}
 
+void ApplyRewind(SkPath& p) {
+    p.rewind();
+}
 
 //========================================================================================
 // SVG things
@@ -538,6 +557,8 @@ EMSCRIPTEN_BINDINGS(skia) {
         .function("computeTightBounds", &SkPath::computeTightBounds)
         .function("equals", &Equals)
         .function("copy", &CopyPath)
+        .function("reset", &ApplyReset)
+        .function("rewind", &ApplyRewind)
 
         // PathEffects
         .function("_dash", &ApplyDash)
