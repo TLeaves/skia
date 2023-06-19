@@ -40,6 +40,7 @@ static const int CLOSE = 5;
 // SkPath, but in an error case, something of type null (which is val) could also be
 // returned;
 using SkPathOrNull = emscripten::val;
+using SkPointOrNull = emscripten::val;
 // Self-documenting for when we return a string
 using JSString = emscripten::val;
 using JSArray = emscripten::val;
@@ -259,6 +260,14 @@ void ApplyReset(SkPath& p) {
 
 void ApplyRewind(SkPath& p) {
     p.rewind();
+}
+
+SkPointOrNull GetLastPoint(SkPath& p) {
+    SkPoint pt;
+    if (p.getLastPt(&pt)) {
+        return emscripten::val(pt);
+    }
+    return emscripten::val::null();
 }
 
 //========================================================================================
@@ -559,6 +568,7 @@ EMSCRIPTEN_BINDINGS(skia) {
         .function("copy", &CopyPath)
         .function("reset", &ApplyReset)
         .function("rewind", &ApplyRewind)
+        .function("getLastPoint", &GetLastPoint)
 
         // PathEffects
         .function("_dash", &ApplyDash)
