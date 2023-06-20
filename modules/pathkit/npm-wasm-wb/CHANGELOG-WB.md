@@ -2,6 +2,10 @@
 
 Base on `pathkit-wasm/1.0.0`
 
+## [1.0.3] 2023-06-20
+
+ - add `getGenerationID` method to SkPath.
+
 ## [1.0.2] 2023-06-19
 
 ### Changed

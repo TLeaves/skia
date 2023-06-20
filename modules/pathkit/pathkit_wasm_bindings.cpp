@@ -569,6 +569,7 @@ EMSCRIPTEN_BINDINGS(skia) {
         .function("reset", &ApplyReset)
         .function("rewind", &ApplyRewind)
         .function("getLastPoint", &GetLastPoint)
+        .function("getGenerationID", &SkPath::getGenerationID)
 
         // PathEffects
         .function("_dash", &ApplyDash)
