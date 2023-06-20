@@ -128,6 +128,24 @@
       return this;
     };
 
+    PathKit.SkPath.prototype.roundRect = function(x, y, w, h, radii) {
+      if (!Array.isArray(radii)) {
+        this._roundRect1(x, y, w, h, radii);
+      } else if (radii.length === 1) {
+        this._roundRect1(x, y, w, h, radii[0]);
+      } else if (radii.length === 2) {
+        this._roundRect2(x, y, w, h, radii[0], radii[1]);
+      } else if (radii.length === 3) {
+        this._roundRect3(x, y, w, h, radii[0], radii[1], radii[2]);
+      } else if (radii.length === 4) {
+        this._roundRect4(x, y, w, h, radii[0], radii[1], radii[2], radii[3]);
+      } else {
+        console.err('roundRect radii expected to take 1, 2, 3, 4 arguments. Got ' + radii.length);
+        return null;
+      }
+      return this;
+    };
+
     PathKit.SkPath.prototype.simplify = function() {
       if (this._simplify()) {
         return this;

@@ -396,6 +396,36 @@ void ApplyEllipse(SkPath& path, SkScalar x, SkScalar y, SkScalar radiusX, SkScal
     path.addPath(temp, m, SkPath::kExtend_AddPathMode);
 }
 
+void ApplyRoundRect(SkPath& path, SkScalar x, SkScalar y, SkScalar width, SkScalar height,
+                    const SkScalar radii[], bool ccw = false) {
+    const SkRect rect = SkRect::MakeXYWH(x, y, width, height);
+    path.addRoundRect(rect, radii, ccw ? SkPathDirection::kCCW : SkPathDirection::kCW);
+}
+
+void ApplyRoundRect1(SkPath& path, SkScalar x, SkScalar y, SkScalar width, SkScalar height,
+                    SkScalar corner) {
+    SkScalar radii[] = { corner, corner, corner, corner, corner, corner, corner, corner };
+    ApplyRoundRect(path, x, y, width, height, radii, false);
+}
+
+void ApplyRoundRect2(SkPath& path, SkScalar x, SkScalar y, SkScalar width, SkScalar height,
+                    SkScalar lt_rb, SkScalar rt_lb) {
+    SkScalar radii[] = { lt_rb, lt_rb, rt_lb, rt_lb, lt_rb, lt_rb, rt_lb, rt_lb };
+    ApplyRoundRect(path, x, y, width, height, radii, false);
+}
+
+void ApplyRoundRect3(SkPath& path, SkScalar x, SkScalar y, SkScalar width, SkScalar height,
+                    SkScalar lt, SkScalar rt_lb, SkScalar rb) {
+    SkScalar radii[] = { lt, lt, rt_lb, rt_lb, rb, rb, rt_lb, rt_lb };
+    ApplyRoundRect(path, x, y, width, height, radii, false);
+}
+
+void ApplyRoundRect4(SkPath& path, SkScalar x, SkScalar y, SkScalar width, SkScalar height,
+                    SkScalar lt, SkScalar rt, SkScalar rb, SkScalar lb) {
+    SkScalar radii[] = { lt, lt, rt, rt, rb, rb, lb, lb };
+    ApplyRoundRect(path, x, y, width, height, radii, false);
+}
+
 // Allows for full matix control.
 void ApplyAddPath(SkPath& orig, const SkPath& newPath,
                    SkScalar scaleX, SkScalar skewX,  SkScalar transX,
@@ -557,6 +587,10 @@ EMSCRIPTEN_BINDINGS(skia) {
         // "quadraticCurveTo" alias handled in JS bindings
         .function("_quadTo", &ApplyQuadTo)
         .function("_rect", &ApplyAddRect)
+        .function("_roundRect1", &ApplyRoundRect1)
+        .function("_roundRect2", &ApplyRoundRect2)
+        .function("_roundRect3", &ApplyRoundRect3)
+        .function("_roundRect4", &ApplyRoundRect4)
 
         // Extra features
         .function("setFillType", select_overload<void(SkPathFillType)>(&SkPath::setFillType))
