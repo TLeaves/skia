@@ -2,6 +2,10 @@
 
 Base on `pathkit-wasm/1.0.0`
 
+## [1.0.5] 2023-07-11
+
+ - add `contains` method to SkPath.
+
 ## [1.0.4] 2023-06-20
 
  - add `getGenerationID` method to SkPath.
