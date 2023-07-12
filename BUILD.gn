@@ -1677,6 +1677,7 @@ skia_static_library("pathkit") {
     "src/core/SkStroke.cpp",
     "src/core/SkStrokeRec.cpp",
     "src/core/SkStrokerPriv.cpp",
+    "src/core/SkCubicClipper.cpp",
     "src/effects/SkDashPathEffect.cpp",
     "src/effects/SkTrimPathEffect.cpp",
     "src/ports/SkDebug_stdio.cpp",
