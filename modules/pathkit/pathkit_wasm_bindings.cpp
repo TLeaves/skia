@@ -22,6 +22,7 @@
 #include "include/utils/SkParsePath.h"
 #include "src/core/SkPaintDefaults.h"
 #include "src/core/SkPathPriv.h"
+#include "include/core/SkPathMeasure.h"
 
 #include <emscripten.h>
 #include <emscripten/bind.h>
@@ -268,6 +269,15 @@ SkPointOrNull GetLastPoint(SkPath& p) {
         return emscripten::val(pt);
     }
     return emscripten::val::null();
+}
+
+float getPathLength(const SkPath& p) {
+    SkScalar len = 0;
+    SkPathMeasure meas(p, false);
+    do {
+        len += meas.getLength();
+    } while (meas.nextContour());
+    return len;
 }
 
 //========================================================================================
@@ -603,6 +613,7 @@ EMSCRIPTEN_BINDINGS(skia) {
         .function("reset", &ApplyReset)
         .function("rewind", &ApplyRewind)
         .function("getLastPoint", &GetLastPoint)
+        .function("getLength", &getPathLength)
         .function("getGenerationID", &SkPath::getGenerationID)
         .function("contains", &SkPath::contains)
 

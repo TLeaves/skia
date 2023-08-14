@@ -2,6 +2,10 @@
 
 Base on `pathkit-wasm/1.0.0`
 
+## [1.0.6] 2023-08-14
+
+ - add `getLength` method to SkPath.
+
 ## [1.0.5] 2023-07-11
 
  - add `contains` method to SkPath.
