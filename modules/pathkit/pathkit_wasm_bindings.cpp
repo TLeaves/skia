@@ -23,6 +23,10 @@
 #include "src/core/SkPaintDefaults.h"
 #include "src/core/SkPathPriv.h"
 #include "include/core/SkPathMeasure.h"
+#include "include/private/base/SkTemplates.h"
+#include "src/gpu/ganesh/geometry/GrTriangulator.h"
+#include "src/gpu/ganesh/GrEagerVertexAllocator.h"
+#include "src/gpu/ganesh/geometry/GrPathUtils.h"
 
 #include <emscripten.h>
 #include <emscripten/bind.h>
@@ -278,6 +282,40 @@ float getPathLength(const SkPath& p) {
         len += meas.getLength();
     } while (meas.nextContour());
     return len;
+}
+
+class SimpleVertexAllocator : public GrEagerVertexAllocator {
+public:
+    void* lock(size_t stride, int eagerCount) override {
+        SkASSERT(!fPoints);
+        SkASSERT(stride == sizeof(SkPoint));
+        fPoints.reset(eagerCount);
+        return fPoints;
+    }
+    void unlock(int actualCount) override {}
+    SkPoint operator[](int idx) const { return fPoints[idx]; }
+    skia_private::AutoTMalloc<SkPoint> fPoints;
+};
+
+JSArray EMSCRIPTEN_KEEPALIVE pathToTriangles(const SkPath& path, SkScalar scale) {
+    JSArray cmds = emscripten::val::array();
+    bool isLinear;
+    SimpleVertexAllocator vertexAlloc;
+    SkRect clipBounds = path.getBounds();
+    SkMatrix m = SkMatrix::Scale(scale, scale);
+    SkScalar tol = GrPathUtils::scaleToleranceToSrc(
+        GrPathUtils::kDefaultTolerance, m, clipBounds);
+    int vertexCount = GrTriangulator::PathToTriangles(
+        path, tol, clipBounds, &vertexAlloc, &isLinear);
+
+    for (int i = 0; i < vertexCount; ++i) {
+        JSArray cmd = emscripten::val::array();
+        const SkPoint point = *(vertexAlloc.fPoints.data() + i);
+        cmd.call<void>("push", point.fX, point.fY);
+        cmds.call<void>("push", cmd);
+    }
+
+    return cmds;
 }
 
 //========================================================================================
@@ -636,6 +674,7 @@ EMSCRIPTEN_BINDINGS(skia) {
         .function("toPath2D", &ToPath2D)
         .function("toCanvas", &ToCanvas)
         .function("toSVGString", &ToSVGString)
+        .function("toTriangles", &pathToTriangles)
 
 #ifdef PATHKIT_TESTING
         .function("dump", select_overload<void() const>(&SkPath::dump))

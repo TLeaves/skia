@@ -1685,6 +1685,8 @@ skia_static_library("pathkit") {
     "src/utils/SkDashPath.cpp",
     "src/utils/SkParse.cpp",
     "src/utils/SkParsePath.cpp",
+    "src/gpu/ganesh/geometry/GrTriangulator.cpp",
+    "src/gpu/ganesh/geometry/GrPathUtils.cpp",
   ]
 }
 
