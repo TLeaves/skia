@@ -2,7 +2,11 @@
 
 Base on `pathkit-wasm/1.0.0`
 
-## [1.0.6] 2023-08-14
+## [1.0.8] 2023-08-18
+
+ - add `toContours` method to SkPath.
+
+## [1.0.7] 2023-08-14
 
  - add `toTriangles` method to SkPath.
 

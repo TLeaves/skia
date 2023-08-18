@@ -318,6 +318,119 @@ JSArray EMSCRIPTEN_KEEPALIVE pathToTriangles(const SkPath& path, SkScalar scale)
     return cmds;
 }
 
+class SimpleTriangulator : public GrTriangulator {
+public:
+    static int PathToContours(const SkPath& path,
+                              float tolerance,
+                              const SkRect& clipBounds,
+                              std::unique_ptr<VertexList[]>* contours,
+                              std::vector<bool>* isCloseList,
+                              bool* isLinear) {
+        if (!path.isFinite()) {
+            return 0;
+        }
+        SkArenaAlloc alloc(kArenaDefaultChunkSize);
+        SimpleTriangulator triangulator(path, &alloc);
+
+        int contourCnt = triangulator.getContourCount(path, tolerance, isCloseList);
+        if (contourCnt <= 0) {
+            *isLinear = true;
+            return 0;
+        }
+
+        if (SkPathFillType_IsInverse(path.getFillType())) {
+            contourCnt++;
+        }
+
+        contours->reset(new VertexList[contourCnt]);
+        triangulator.pathToContours(tolerance, clipBounds, contours->get(), isLinear);
+        return contourCnt;
+    }
+
+    static int getContourCount(const SkPath& path, SkScalar tolerance, std::vector<bool>* isCloseList) {
+        // We could theoretically be more aggressive about not counting empty contours, but we need to
+        // actually match the exact number of contour linked lists the tessellator will create later on.
+        int contourCnt = 1;
+        bool hasPoints = false;
+
+        SkPath::Iter iter(path, false);
+        SkPath::Verb verb;
+        SkPoint pts[4];
+        bool first = true;
+        bool curIsClose = false;
+        while ((verb = iter.next(pts)) != SkPath::kDone_Verb) {
+            switch (verb) {
+                case SkPath::kMove_Verb:
+                    if (!first) {
+                        ++contourCnt;
+
+                        isCloseList->push_back(curIsClose);
+                        curIsClose = false;
+                    }
+                    [[fallthrough]];
+                case SkPath::kLine_Verb:
+                case SkPath::kConic_Verb:
+                case SkPath::kQuad_Verb:
+                case SkPath::kCubic_Verb:
+                    hasPoints = true;
+                    break;
+                case SkPath::kClose_Verb:
+                    curIsClose = true;
+                    break;
+                default:
+                    break;
+            }
+            first = false;
+        }
+
+        isCloseList->push_back(curIsClose);
+        assert(isCloseList->size() == contourCnt);
+
+        if (!hasPoints) {
+            return 0;
+        }
+        return contourCnt;
+    }
+
+    SimpleTriangulator(const SkPath& path, SkArenaAlloc* alloc): GrTriangulator(path, alloc) {}
+    virtual ~SimpleTriangulator() {}
+};
+
+JSArray EMSCRIPTEN_KEEPALIVE pathToContours(const SkPath& path, SkScalar scale) {
+    JSArray cmds = emscripten::val::array();
+    bool isLinear;
+    SimpleVertexAllocator vertexAlloc;
+    SkRect clipBounds = path.getBounds();
+    SkMatrix m = SkMatrix::Scale(scale, scale);
+    SkScalar tol = GrPathUtils::scaleToleranceToSrc(
+        GrPathUtils::kDefaultTolerance, m, clipBounds);
+    std::unique_ptr<GrTriangulator::VertexList[]> contours;
+    std::vector<bool> isCloseList;
+    int count = SimpleTriangulator::PathToContours(
+        path, tol, clipBounds, &contours, &isCloseList, &isLinear);
+
+    for (int i = 0; i < count; ++i) {
+        const GrTriangulator::VertexList& list = contours.get()[i];
+        JSArray cmd = emscripten::val::array();
+        GrTriangulator::Vertex* p = list.fHead;
+        while (p) {
+            JSArray cmd_p = emscripten::val::array();
+            if (p == list.fTail && isCloseList[i]) {
+                const double nan = std::nan(0);
+                cmd_p.call<void>("push", nan, nan);
+            } else {
+                const SkPoint& point = p->fPoint;
+                cmd_p.call<void>("push", point.fX, point.fY);
+            }
+            cmd.call<void>("push", cmd_p);
+            p = p->fNext;
+        }
+        cmds.call<void>("push", cmd);
+    }
+
+    return cmds;
+}
+
 //========================================================================================
 // SVG things
 //========================================================================================
@@ -674,6 +787,7 @@ EMSCRIPTEN_BINDINGS(skia) {
         .function("toPath2D", &ToPath2D)
         .function("toCanvas", &ToCanvas)
         .function("toSVGString", &ToSVGString)
+        .function("toContours", &pathToContours)
         .function("toTriangles", &pathToTriangles)
 
 #ifdef PATHKIT_TESTING
