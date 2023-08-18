@@ -2,6 +2,10 @@
 
 Base on `pathkit-wasm/1.0.0`
 
+## [1.0.9] 2023-08-18
+
+ - fix `toContours` memory out of bound.
+
 ## [1.0.8] 2023-08-18
 
  - add `toContours` method to SkPath.

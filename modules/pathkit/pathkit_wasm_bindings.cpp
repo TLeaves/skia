@@ -323,16 +323,16 @@ public:
     static int PathToContours(const SkPath& path,
                               float tolerance,
                               const SkRect& clipBounds,
+                              const SimpleTriangulator triangulator,
                               std::unique_ptr<VertexList[]>* contours,
                               std::vector<bool>* isCloseList,
                               bool* isLinear) {
         if (!path.isFinite()) {
             return 0;
         }
-        SkArenaAlloc alloc(kArenaDefaultChunkSize);
-        SimpleTriangulator triangulator(path, &alloc);
 
-        int contourCnt = triangulator.getContourCount(path, tolerance, isCloseList);
+        int contourCnt = triangulator.getContourInfo(
+            path, tolerance, isCloseList);
         if (contourCnt <= 0) {
             *isLinear = true;
             return 0;
@@ -347,7 +347,9 @@ public:
         return contourCnt;
     }
 
-    static int getContourCount(const SkPath& path, SkScalar tolerance, std::vector<bool>* isCloseList) {
+    static int getContourInfo(const SkPath& path,
+                              SkScalar tolerance,
+                              std::vector<bool>* isCloseList) {
         // We could theoretically be more aggressive about not counting empty contours, but we need to
         // actually match the exact number of contour linked lists the tessellator will create later on.
         int contourCnt = 1;
@@ -398,24 +400,30 @@ public:
 
 JSArray EMSCRIPTEN_KEEPALIVE pathToContours(const SkPath& path, SkScalar scale) {
     JSArray cmds = emscripten::val::array();
+
+    SkArenaAlloc alloc(GrTriangulator::kArenaDefaultChunkSize);
+    SimpleTriangulator triangulator(path, &alloc);
+
     bool isLinear;
-    SimpleVertexAllocator vertexAlloc;
     SkRect clipBounds = path.getBounds();
     SkMatrix m = SkMatrix::Scale(scale, scale);
     SkScalar tol = GrPathUtils::scaleToleranceToSrc(
         GrPathUtils::kDefaultTolerance, m, clipBounds);
     std::unique_ptr<GrTriangulator::VertexList[]> contours;
     std::vector<bool> isCloseList;
+
     int count = SimpleTriangulator::PathToContours(
-        path, tol, clipBounds, &contours, &isCloseList, &isLinear);
+        path, tol, clipBounds, triangulator, &contours, &isCloseList, &isLinear);
 
     for (int i = 0; i < count; ++i) {
         const GrTriangulator::VertexList& list = contours.get()[i];
         JSArray cmd = emscripten::val::array();
         GrTriangulator::Vertex* p = list.fHead;
+
         while (p) {
             JSArray cmd_p = emscripten::val::array();
             if (p == list.fTail && isCloseList[i]) {
+                const SkPoint& point = p->fPoint;
                 const double nan = std::nan(0);
                 cmd_p.call<void>("push", nan, nan);
             } else {
