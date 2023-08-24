@@ -50,6 +50,8 @@ using SkPointOrNull = emscripten::val;
 using JSString = emscripten::val;
 using JSArray = emscripten::val;
 
+using WASMPointerF32 = uintptr_t;
+
 // =================================================================================
 // Creating/Exporting Paths with cmd arrays
 // =================================================================================
@@ -287,9 +289,8 @@ float getPathLength(const SkPath& p) {
 class SimpleVertexAllocator : public GrEagerVertexAllocator {
 public:
     void* lock(size_t stride, int eagerCount) override {
-        SkASSERT(!fPoints);
         SkASSERT(stride == sizeof(SkPoint));
-        fPoints.reset(eagerCount);
+        fPoints.realloc(eagerCount);
         return fPoints;
     }
     void unlock(int actualCount) override {}
@@ -315,6 +316,26 @@ JSArray EMSCRIPTEN_KEEPALIVE pathToTriangles(const SkPath& path, SkScalar scale)
         cmds.call<void>("push", cmd);
     }
 
+    return cmds;
+}
+
+namespace {
+    SimpleVertexAllocator gVertexAlloc;
+}
+
+JSArray EMSCRIPTEN_KEEPALIVE pathToTrianglesBuffer(const SkPath& path, SkScalar scale) {
+    JSArray cmds = emscripten::val::array();
+    bool isLinear;
+    SkRect clipBounds = path.getBounds();
+    SkMatrix m = SkMatrix::Scale(scale, scale);
+    SkScalar tol = GrPathUtils::scaleToleranceToSrc(
+        GrPathUtils::kDefaultTolerance, m, clipBounds);
+    int vertexCount = GrTriangulator::PathToTriangles(
+        path, tol, clipBounds, &gVertexAlloc, &isLinear);
+
+    // share raw points buffer to JS by Float32Array(PathKit.HEAPF32), and reuse global vertex buffer.
+    SkScalar* points = reinterpret_cast<SkScalar*>(gVertexAlloc.fPoints.data());
+    cmds.call<void>("push", reinterpret_cast<WASMPointerF32>(points), vertexCount * 2);
     return cmds;
 }
 
@@ -797,6 +818,7 @@ EMSCRIPTEN_BINDINGS(skia) {
         .function("toSVGString", &ToSVGString)
         .function("toContours", &pathToContours)
         .function("toTriangles", &pathToTriangles)
+        .function("_toTrianglesBuffer", &pathToTrianglesBuffer)
 
 #ifdef PATHKIT_TESTING
         .function("dump", select_overload<void() const>(&SkPath::dump))

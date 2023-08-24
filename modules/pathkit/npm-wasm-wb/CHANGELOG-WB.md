@@ -2,6 +2,10 @@
 
 Base on `pathkit-wasm/1.0.0`
 
+## [1.0.10] 2023-08-24
+
+ - add `toTrianglesBuffer` method to SkPath, shared memory of wasm to improve efficiency.
+
 ## [1.0.9] 2023-08-18
 
  - fix `toContours` memory out of bound.
