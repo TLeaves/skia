@@ -2,6 +2,11 @@
 
 Base on `pathkit-wasm/1.0.0`
 
+## [1.0.12] 2023-08-25
+
+ - remove `toTrianglesBuffer` method. merge to `toTriangles` method.
+ - use shared memory of `toContours` to improve efficiency.
+
 ## [1.0.10] 2023-08-24
 
  - add `toTrianglesBuffer` method to SkPath, shared memory of wasm to improve efficiency.

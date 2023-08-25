@@ -60,6 +60,7 @@ var PathKit = {
 		_roundRect2: function(x, y, w, h, lt_rb, rt_lb) {},
 		_roundRect3: function(x, y, w, h, lt, rt_lb, rb) {},
 		_roundRect4: function(x, y, w, h, lt, rt, rb, lb) {},
+		_toContoursBuffer: function(scale) {},
 		_toTrianglesBuffer: function(scale) {},
 	},
 
@@ -112,4 +113,5 @@ PathKit.SkPath.prototype.stroke = function(opts) {};
 PathKit.SkPath.prototype.transform = function() {};
 PathKit.SkPath.prototype.trim = function(startT, stopT, isComplement) {};
 PathKit.SkPath.prototype.roundRect = function(x, y, w, h, radii) {};
-PathKit.SkPath.prototype.toTrianglesBuffer = function(scale) {};
+PathKit.SkPath.prototype.toContours = function(scale) {};
+PathKit.SkPath.prototype.toTriangles = function(scale) {};

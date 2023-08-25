@@ -298,29 +298,9 @@ public:
     skia_private::AutoTMalloc<SkPoint> fPoints;
 };
 
-JSArray EMSCRIPTEN_KEEPALIVE pathToTriangles(const SkPath& path, SkScalar scale) {
-    JSArray cmds = emscripten::val::array();
-    bool isLinear;
-    SimpleVertexAllocator vertexAlloc;
-    SkRect clipBounds = path.getBounds();
-    SkMatrix m = SkMatrix::Scale(scale, scale);
-    SkScalar tol = GrPathUtils::scaleToleranceToSrc(
-        GrPathUtils::kDefaultTolerance, m, clipBounds);
-    int vertexCount = GrTriangulator::PathToTriangles(
-        path, tol, clipBounds, &vertexAlloc, &isLinear);
-
-    for (int i = 0; i < vertexCount; ++i) {
-        JSArray cmd = emscripten::val::array();
-        const SkPoint point = *(vertexAlloc.fPoints.data() + i);
-        cmd.call<void>("push", point.fX, point.fY);
-        cmds.call<void>("push", cmd);
-    }
-
-    return cmds;
-}
-
 namespace {
     SimpleVertexAllocator gVertexAlloc;
+    std::vector<std::vector<SkPoint>> gContours;
 }
 
 JSArray EMSCRIPTEN_KEEPALIVE pathToTrianglesBuffer(const SkPath& path, SkScalar scale) {
@@ -419,7 +399,7 @@ public:
     virtual ~SimpleTriangulator() {}
 };
 
-JSArray EMSCRIPTEN_KEEPALIVE pathToContours(const SkPath& path, SkScalar scale) {
+JSArray EMSCRIPTEN_KEEPALIVE pathToContoursBuffer(const SkPath& path, SkScalar scale) {
     JSArray cmds = emscripten::val::array();
 
     SkArenaAlloc alloc(GrTriangulator::kArenaDefaultChunkSize);
@@ -439,21 +419,27 @@ JSArray EMSCRIPTEN_KEEPALIVE pathToContours(const SkPath& path, SkScalar scale) 
     for (int i = 0; i < count; ++i) {
         const GrTriangulator::VertexList& list = contours.get()[i];
         JSArray cmd = emscripten::val::array();
-        GrTriangulator::Vertex* p = list.fHead;
+        while (gContours.size() <= i) {
+            gContours.push_back({});
+        }
 
+        std::vector<SkPoint>& curContour = gContours[i];
+        curContour.clear();
+        GrTriangulator::Vertex* p = list.fHead;
         while (p) {
-            JSArray cmd_p = emscripten::val::array();
             if (p == list.fTail && isCloseList[i]) {
-                const SkPoint& point = p->fPoint;
-                const double nan = std::nan(0);
-                cmd_p.call<void>("push", nan, nan);
+                const SkScalar nan = std::nanf(0);
+                curContour.push_back({ nan, nan });
             } else {
                 const SkPoint& point = p->fPoint;
-                cmd_p.call<void>("push", point.fX, point.fY);
+                curContour.push_back({ point.fX, point.fY });
             }
-            cmd.call<void>("push", cmd_p);
             p = p->fNext;
         }
+
+        // share raw points buffer to JS by Float32Array(PathKit.HEAPF32), and reuse global vertex buffer.
+        SkScalar* points = reinterpret_cast<SkScalar*>(curContour.data());
+        cmd.call<void>("push", reinterpret_cast<WASMPointerF32>(points), curContour.size() * 2);
         cmds.call<void>("push", cmd);
     }
 
@@ -816,8 +802,7 @@ EMSCRIPTEN_BINDINGS(skia) {
         .function("toPath2D", &ToPath2D)
         .function("toCanvas", &ToCanvas)
         .function("toSVGString", &ToSVGString)
-        .function("toContours", &pathToContours)
-        .function("toTriangles", &pathToTriangles)
+        .function("_toContoursBuffer", &pathToContoursBuffer)
         .function("_toTrianglesBuffer", &pathToTrianglesBuffer)
 
 #ifdef PATHKIT_TESTING

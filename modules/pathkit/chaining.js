@@ -199,9 +199,31 @@
     };
 
     // copy points data from wasm memory
-    PathKit.SkPath.prototype.toTrianglesBuffer = function(scale) {
+    PathKit.SkPath.prototype.toContours = function(scale) {
+      const contours_buffers = this._toContoursBuffer(scale);
+      const contours = [];
+
+      for (let i = 0; i < contours_buffers.length; i++) {
+        const [ ptr, len ] = contours_buffers[i];
+        const p = ptr / Float32Array.BYTES_PER_ELEMENT;
+        const c = [];
+
+        for (let i = 0; i < len; i += 2) {
+          const x = PathKit.HEAPF32[p + i];
+          const y = PathKit.HEAPF32[p + i + 1];
+          c.push([ x, y ]);
+        }
+
+        contours.push(c);
+      }
+      
+      return contours;
+    };
+
+    // copy points data from wasm memory
+    PathKit.SkPath.prototype.toTriangles = function(scale) {
       const [ ptr, len ] = this._toTrianglesBuffer(scale);
-      let p = ptr / Float32Array.BYTES_PER_ELEMENT;
+      const p = ptr / Float32Array.BYTES_PER_ELEMENT;
 
       const triangles = [];
       for (let i = 0; i < len; i += 2) {
@@ -210,7 +232,7 @@
         triangles.push([ x, y ]);
       }
       return triangles;
-    }
+    };
   };
 
 }(Module)); // When this file is loaded in, the high level object is "Module";
