@@ -2,6 +2,10 @@
 
 Base on `pathkit-wasm/1.0.0`
 
+## [1.0.13] 2024-01-22
+
+ - add `makeAsWinding` to SkPath.
+
 ## [1.0.12] 2023-08-25
 
  - remove `toTrianglesBuffer` method. merge to `toTriangles` method.
