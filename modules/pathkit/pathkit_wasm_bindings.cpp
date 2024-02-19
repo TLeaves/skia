@@ -286,8 +286,8 @@ float getPathLength(const SkPath& p) {
     return len;
 }
 
-bool EMSCRIPTEN_KEEPALIVE IsOnlyLineSegments(const SkPath& self) {
-    return self.getSegmentMasks() == SkPath::kLine_SegmentMask;
+bool EMSCRIPTEN_KEEPALIVE IsHadCurve(const SkPath& self) {
+    return self.getSegmentMasks() > SkPath::kLine_SegmentMask;
 }
 
 class SimpleVertexAllocator : public GrEagerVertexAllocator {
@@ -794,7 +794,7 @@ EMSCRIPTEN_BINDINGS(skia) {
         .function("getLength", &getPathLength)
         .function("getGenerationID", &SkPath::getGenerationID)
         .function("contains", &SkPath::contains)
-        .function("isOnlyLineSegments", &IsOnlyLineSegments)
+        .function("isHadCurve", &IsHadCurve)
 
         // PathEffects
         .function("_dash", &ApplyDash)
