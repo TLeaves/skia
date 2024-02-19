@@ -2,6 +2,10 @@
 
 Base on `pathkit-wasm/1.0.0`
 
+## [1.0.14] 2024-02-19
+
+ - add `isOnlyLineSegments` to SkPath.
+
 ## [1.0.13] 2024-01-22
 
  - add `makeAsWinding` to SkPath.
