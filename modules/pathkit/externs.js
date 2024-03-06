@@ -62,6 +62,7 @@ var PathKit = {
 		_roundRect4: function(x, y, w, h, lt, rt, rb, lb) {},
 		_toContoursBuffer: function(scale) {},
 		_toTrianglesBuffer: function(scale) {},
+		_toAATrianglesBuffer: function(scale) {},
 	},
 
 	StrokeCap: {

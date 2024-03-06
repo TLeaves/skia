@@ -25,6 +25,7 @@
 #include "include/core/SkPathMeasure.h"
 #include "include/private/base/SkTemplates.h"
 #include "src/gpu/ganesh/geometry/GrTriangulator.h"
+#include "src/gpu/ganesh/geometry/GrAATriangulator.h"
 #include "src/gpu/ganesh/GrEagerVertexAllocator.h"
 #include "src/gpu/ganesh/geometry/GrPathUtils.h"
 
@@ -299,11 +300,31 @@ public:
     }
     void unlock(int actualCount) override {}
     SkPoint operator[](int idx) const { return fPoints[idx]; }
+
     skia_private::AutoTMalloc<SkPoint> fPoints;
+};
+
+struct SkPointAA {
+    SkPoint point;
+    float alpha;
+};
+
+class SimpleAAVertexAllocator : public GrEagerVertexAllocator {
+public:
+    void* lock(size_t stride, int eagerCount) override {
+        SkASSERT(stride == sizeof(SkPointAA));
+        fPoints.realloc(eagerCount);
+        return fPoints;
+    }
+    void unlock(int actualCount) override {}
+    SkPointAA operator[](int idx) const { return fPoints[idx]; }
+
+    skia_private::AutoTMalloc<SkPointAA> fPoints;
 };
 
 namespace {
     SimpleVertexAllocator gVertexAlloc;
+    SimpleAAVertexAllocator gAAVertexAlloc;
     std::vector<std::vector<SkPoint>> gContours;
 }
 
@@ -320,6 +341,22 @@ JSArray EMSCRIPTEN_KEEPALIVE pathToTrianglesBuffer(const SkPath& path, SkScalar 
     // share raw points buffer to JS by Float32Array(PathKit.HEAPF32), and reuse global vertex buffer.
     SkScalar* points = reinterpret_cast<SkScalar*>(gVertexAlloc.fPoints.data());
     cmds.call<void>("push", reinterpret_cast<WASMPointerF32>(points), vertexCount * 2);
+    return cmds;
+}
+
+JSArray EMSCRIPTEN_KEEPALIVE pathToAATrianglesBuffer(const SkPath& path, SkScalar scale) {
+    JSArray cmds = emscripten::val::array();
+    bool isLinear;
+    SkRect clipBounds = path.getBounds();
+    SkMatrix m = SkMatrix::Scale(scale, scale);
+    SkScalar tol = GrPathUtils::scaleToleranceToSrc(
+        GrPathUtils::kDefaultTolerance, m, clipBounds);
+    int vertexCount = GrAATriangulator::PathToAATriangles(
+        path, tol, clipBounds, &gAAVertexAlloc);
+
+    // share raw points buffer to JS by Float32Array(PathKit.HEAPF32), and reuse global vertex buffer.
+    SkScalar* points = reinterpret_cast<SkScalar*>(gAAVertexAlloc.fPoints.data());
+    cmds.call<void>("push", reinterpret_cast<WASMPointerF32>(points), vertexCount * 3);
     return cmds;
 }
 
@@ -818,6 +855,7 @@ EMSCRIPTEN_BINDINGS(skia) {
         .function("toSVGString", &ToSVGString)
         .function("_toContoursBuffer", &pathToContoursBuffer)
         .function("_toTrianglesBuffer", &pathToTrianglesBuffer)
+        .function("_toAATrianglesBuffer", &pathToAATrianglesBuffer)
 
 #ifdef PATHKIT_TESTING
         .function("dump", select_overload<void() const>(&SkPath::dump))

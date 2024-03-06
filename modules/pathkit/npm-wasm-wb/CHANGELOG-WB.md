@@ -2,6 +2,10 @@
 
 Base on `pathkit-wasm/1.0.0`
 
+## [1.0.15] 2024-03-06
+
+ - add `_toAATrianglesBuffer` to SkPath.
+
 ## [1.0.14] 2024-02-19
 
  - add `isHadCurve` to SkPath.
