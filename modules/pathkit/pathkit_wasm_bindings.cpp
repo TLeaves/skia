@@ -832,6 +832,7 @@ EMSCRIPTEN_BINDINGS(skia) {
         .function("getGenerationID", &SkPath::getGenerationID)
         .function("contains", &SkPath::contains)
         .function("isHadCurve", &IsHadCurve)
+        .function("isEmpty", &SkPath::isEmpty)
 
         // PathEffects
         .function("_dash", &ApplyDash)
