@@ -2,6 +2,10 @@
 
 Base on `pathkit-wasm/1.0.0`
 
+## [1.0.17] 2024-05-17
+
+ - add `FromStrokeInk` to PathKit, convert ink points to stroke path.
+
 ## [1.0.16] 2024-04-10
 
  - add `isEmpty` to SkPath.

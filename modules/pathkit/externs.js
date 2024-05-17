@@ -32,6 +32,9 @@ var PathKit = {
 	cubicYFromX: function(cpx1, cpy1, cpx2, cpy2, X) {},
 	cubicPtFromT: function(cpx1, cpy1, cpx2, cpy2, T) {},
 
+	FromStrokeInk(points, line_width, endpoint_type) {},
+	_FromStrokeInk(stylus_point_ptr, point_count, line_width, endpoint_type) {},
+
 	/**
 	 * @type {Float32Array}
 	 */

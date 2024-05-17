@@ -6,6 +6,59 @@
   PathKit.onRuntimeInitialized = function() {
     // All calls to 'this' need to go in externs.js so closure doesn't minify them away.
 
+    // Caching the Float32Arrays can save having to reallocate them
+    // over and over again.
+    var SharedFloat32ArrayCache = null;
+
+    PathKit.mallocSharedFloat32ArrayView = function (len) {
+      if (!SharedFloat32ArrayCache || SharedFloat32ArrayCache.length < len) {
+        SharedFloat32ArrayCache = new Float32Array(len);
+        return SharedFloat32ArrayCache;
+      } else {
+        return SharedFloat32ArrayCache.subarray(0, len);
+      }
+    };
+
+    const kStylusPointSize = 3; // { x, y, p }
+    PathKit.loadStylusInksTypedArray = function (points) {
+      var len = points.length * kStylusPointSize;
+
+      var ta = PathKit.mallocSharedFloat32ArrayView(len);
+      // Flatten into a 1d array
+      var i = 0;
+      for (var r = 0; r < points.length; r++) {
+        ta[i] = points[r].x;
+        ta[i + 1] = points[r].y;
+        ta[i + 2] = points[r].p;
+        i += kStylusPointSize;
+      }
+
+      var ptr = PathKit._malloc(ta.length * ta.BYTES_PER_ELEMENT);
+      PathKit.HEAPF32.set(ta, ptr / ta.BYTES_PER_ELEMENT);
+      return [ ptr, len ];
+    };
+
+    PathKit.freeTypedArray = function(prt_or_prt_len) {
+      if (prt_or_prt_len instanceof Array) {
+        PathKit._free(prt_or_prt_len[0]);
+      } else {
+        PathKit._free(prt_or_prt_len);
+      }
+    };
+
+    PathKit.FromStrokeInk = function(points, line_width, endpoint_type) {
+      var ptr_len = PathKit.loadStylusInksTypedArray(points);
+      const path = PathKit._FromStrokeInk(
+        ptr_len[0],
+        ptr_len[1] / kStylusPointSize,
+        line_width || 0,
+        endpoint_type || 0,
+      );
+      PathKit.freeTypedArray(ptr_len);
+
+      return path;
+    };
+
     PathKit.SkPath.prototype.addPath = function() {
       // Takes 1, 2, 7 or 10 args, where the first arg is always the path.
       // The options for the remaining args are:

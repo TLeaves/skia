@@ -118,6 +118,7 @@ $WASM_CONF \
 -sSTRICT=1 \
 $OUTPUT \
 $BASE_DIR/pathkit_wasm_bindings.cpp \
+$BASE_DIR/src/InkStrokeUtils.cpp \
 ${BUILD_DIR}/libpathkit.a
 
 

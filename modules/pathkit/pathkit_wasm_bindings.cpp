@@ -29,6 +29,8 @@
 #include "src/gpu/ganesh/GrEagerVertexAllocator.h"
 #include "src/gpu/ganesh/geometry/GrPathUtils.h"
 
+#include "src/InkStrokeUtils.h"
+
 #include <emscripten.h>
 #include <emscripten/bind.h>
 
@@ -219,6 +221,25 @@ SkPath EMSCRIPTEN_KEEPALIVE CopyPath(const SkPath& a) {
 
 bool EMSCRIPTEN_KEEPALIVE Equals(const SkPath& a, const SkPath& b) {
     return a == b;
+}
+
+SkPathOrNull FromStrokeInk(uintptr_t stylus_point_ptr, int point_count, float line_width, int endpoint_type) {
+    using namespace inkutils;
+
+    const StylusPoint* sps = reinterpret_cast<const StylusPoint*>(stylus_point_ptr);
+    InkEndpointType type = static_cast<InkEndpointType>(endpoint_type);
+
+    SkPaint p;
+    p.setStyle(SkPaint::kStroke_Style);
+    p.setStrokeCap(type != InkEndpointType::Square ? SkPaint::Cap::kRound_Cap : SkPaint::Cap::kSquare_Cap);
+    p.setStrokeJoin(type != InkEndpointType::Square ? SkPaint::Join::kRound_Join : SkPaint::Join::kBevel_Join);
+    p.setStrokeWidth(line_width);
+
+    SkPath path;
+    if (StrokeInkWithPaint(sps, point_count, type, p, &path)) {
+        return emscripten::val(path);
+    }
+    return emscripten::val::null();
 }
 
 //========================================================================================
@@ -881,6 +902,7 @@ EMSCRIPTEN_BINDINGS(skia) {
     // FromCmds is defined in helper.js to make use of TypedArrays transparent.
     function("_FromCmds", &FromCmds);
     // Path2D is opaque, so we can't read in from it.
+    function("_FromStrokeInk", &FromStrokeInk);
 
     // PathOps
     function("MakeFromOp", &MakeFromOp);
