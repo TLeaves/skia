@@ -286,6 +286,15 @@
       }
       return triangles;
     };
+
+    // default antialiasing radius is 0.5
+    PathKit.SkPath.prototype.toAABoundaryTrianglesBuffer = function(scale, radius) {
+      if (radius === undefined) {
+        radius = 0.5;
+      }
+
+      return this._toAABoundaryTrianglesBuffer(scale, radius);
+    };
   };
 
 }(Module)); // When this file is loaded in, the high level object is "Module";

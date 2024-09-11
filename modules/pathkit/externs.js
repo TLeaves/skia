@@ -120,3 +120,4 @@ PathKit.SkPath.prototype.trim = function(startT, stopT, isComplement) {};
 PathKit.SkPath.prototype.roundRect = function(x, y, w, h, radii) {};
 PathKit.SkPath.prototype.toContours = function(scale) {};
 PathKit.SkPath.prototype.toTriangles = function(scale) {};
+PathKit.SkPath.prototype.toAABoundaryTrianglesBuffer = function(scale, radius) {};
