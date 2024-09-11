@@ -421,7 +421,7 @@ void GrAATriangulator::strokeBoundary(EdgeList* boundary, VertexList* innerMesh,
     Vertex* prevV = prevEdge->fWinding > 0 ? prevEdge->fTop : prevEdge->fBottom;
     SkVector prevNormal;
     get_edge_normal(prevEdge, &prevNormal);
-    double radius = 0.5;
+    double radius = fBoundaryRadius;
     Line prevInner(prevEdge->fLine);
     prevInner.fC -= radius;
     Line prevOuter(prevEdge->fLine);
@@ -455,8 +455,8 @@ void GrAATriangulator::strokeBoundary(EdgeList* boundary, VertexList* innerMesh,
                 tangent.normalize();
                 Line innerTangent(tangent);
                 Line outerTangent(tangent);
-                innerTangent.fC -= 0.5;
-                outerTangent.fC += 0.5;
+                innerTangent.fC -= radius;
+                outerTangent.fC += radius;
                 SkPoint innerPoint1, innerPoint2, outerPoint1, outerPoint2;
                 if (prevNormal.cross(normal) > 0) {
                     // Miter inner points

@@ -1,6 +1,6 @@
 {
   "name": "@whiteboard/pathkit-wasm",
-  "version": "1.0.17",
+  "version": "1.0.18",
   "description": "A WASM version of Skia's PathOps toolkit",
   "main": "bin/pathkit.js",
   "homepage": "https://github.com/google/skia/tree/main/modules/pathkit",

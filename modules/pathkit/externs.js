@@ -66,6 +66,7 @@ var PathKit = {
 		_toContoursBuffer: function(scale) {},
 		_toTrianglesBuffer: function(scale) {},
 		_toAATrianglesBuffer: function(scale) {},
+		_toAABoundaryTrianglesBuffer: function(scale, radius) {},
 	},
 
 	StrokeCap: {

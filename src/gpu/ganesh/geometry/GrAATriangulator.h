@@ -16,15 +16,19 @@
 class GrAATriangulator : private GrTriangulator {
 public:
     static int PathToAATriangles(const SkPath& path, SkScalar tolerance, const SkRect& clipBounds,
-                                 GrEagerVertexAllocator* vertexAllocator) {
+                                 GrEagerVertexAllocator* vertexAllocator, int* polysCount = nullptr,
+                                 double boundaryRadius = 0.5) {
         SkArenaAlloc alloc(kArenaDefaultChunkSize);
-        GrAATriangulator aaTriangulator(path, &alloc);
+        GrAATriangulator aaTriangulator(path, &alloc, boundaryRadius);
         aaTriangulator.fRoundVerticesToQuarterPixel = true;
         aaTriangulator.fEmitCoverage = true;
         bool isLinear;
         auto [ polys, success ] = aaTriangulator.pathToPolys(tolerance, clipBounds, &isLinear);
         if (!success) {
             return 0;
+        }
+        if (polysCount) {
+            *polysCount = GrAATriangulator::CountPoints(polys, SkPathFillType::kWinding);
         }
         return aaTriangulator.polysToAATriangles(polys, vertexAllocator);
     }
@@ -51,7 +55,8 @@ public:
     };
 
 private:
-    GrAATriangulator(const SkPath& path, SkArenaAlloc* alloc) : GrTriangulator(path, alloc) {}
+    GrAATriangulator(const SkPath& path, SkArenaAlloc* alloc, double boundaryRadius = 0.5)
+            : GrTriangulator(path, alloc), fBoundaryRadius(boundaryRadius) {}
 
     // For screenspace antialiasing, the algorithm is modified as follows:
     //
@@ -84,6 +89,7 @@ private:
 
     // FIXME: fOuterMesh should be plumbed through function parameters instead.
     mutable VertexList fOuterMesh;
+    double fBoundaryRadius;
 };
 
 #endif // SK_ENABLE_OPTIMIZE_SIZE

@@ -381,6 +381,50 @@ JSArray EMSCRIPTEN_KEEPALIVE pathToAATrianglesBuffer(const SkPath& path, SkScala
     return cmds;
 }
 
+JSArray EMSCRIPTEN_KEEPALIVE pathToAABoundaryTrianglesBuffer(const SkPath& path, SkScalar scale, SkScalar radius) {
+    JSArray cmds = emscripten::val::array();
+    bool isLinear;
+    SkRect clipBounds = path.getBounds();
+    SkMatrix m = SkMatrix::Scale(scale, scale);
+    SkScalar tol = GrPathUtils::scaleToleranceToSrc(
+        GrPathUtils::kDefaultTolerance, m, clipBounds);
+    int polysCount = 0;
+    int vertexCount = GrAATriangulator::PathToAATriangles(
+        path, tol, clipBounds, &gAAVertexAlloc, &polysCount, radius);
+
+    constexpr int kPointSize = 3;
+    int polysOffset = 0;
+    int boundaryLength = vertexCount * kPointSize;
+    if (polysCount < vertexCount) {
+        // no complex polygons, antialias triangulators is at the tail.
+        polysOffset = polysCount * kPointSize;
+        boundaryLength = (vertexCount - polysCount) * kPointSize;
+    } else {
+        // complex mesh, antialias triangulators is mixed on the buffer. collect them.
+        int aaCount = 0;
+        for (int i = 0; i < vertexCount; i += 3) {
+            const SkPointAA& p0 = gAAVertexAlloc.fPoints[i];
+            const SkPointAA& p1 = gAAVertexAlloc.fPoints[i + 1];
+            const SkPointAA& p2 = gAAVertexAlloc.fPoints[i + 2];
+            if (p0.alpha < 1.0 || p1.alpha < 1.0 || p2.alpha < 1.0) {
+                if (i > aaCount) {
+                    gAAVertexAlloc.fPoints[aaCount] = p0;
+                    gAAVertexAlloc.fPoints[aaCount + 1] = p1;
+                    gAAVertexAlloc.fPoints[aaCount + 2] = p2;
+                }
+                aaCount += 3;
+            }
+        }
+        polysOffset = 0;
+        boundaryLength = aaCount * kPointSize;
+    }
+
+    // share raw points buffer to JS by Float32Array(PathKit.HEAPF32), and reuse global vertex buffer.
+    SkScalar* points = reinterpret_cast<SkScalar*>(gAAVertexAlloc.fPoints.data()) + polysOffset;
+    cmds.call<void>("push", reinterpret_cast<WASMPointerF32>(points), boundaryLength);
+    return cmds;
+}
+
 class SimpleTriangulator : public GrTriangulator {
 public:
     static int PathToContours(const SkPath& path,
@@ -878,6 +922,7 @@ EMSCRIPTEN_BINDINGS(skia) {
         .function("_toContoursBuffer", &pathToContoursBuffer)
         .function("_toTrianglesBuffer", &pathToTrianglesBuffer)
         .function("_toAATrianglesBuffer", &pathToAATrianglesBuffer)
+        .function("_toAABoundaryTrianglesBuffer", &pathToAABoundaryTrianglesBuffer)
 
 #ifdef PATHKIT_TESTING
         .function("dump", select_overload<void() const>(&SkPath::dump))

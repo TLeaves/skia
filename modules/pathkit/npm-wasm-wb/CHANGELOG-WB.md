@@ -2,6 +2,11 @@
 
 Base on `pathkit-wasm/1.0.0`
 
+## [1.0.18] 2024-09-11
+
+ - add `_toAABoundaryTrianglesBuffer` to SkPath, only return the antialiasing boundary triangles of path.
+ - add the support of custom vertex-antialiasing boundary radius to `GrAATriangulator`.
+
 ## [1.0.17] 2024-05-17
 
  - add `FromStrokeInk` to PathKit, convert ink points to stroke path.

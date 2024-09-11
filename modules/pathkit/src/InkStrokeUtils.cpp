@@ -38,7 +38,7 @@ void reversePathTo(SkPath* self, const SkPath& path) {
 
     const uint8_t* verbsBegin = SkPathPriv::VerbData(path);
     const uint8_t* verbs = verbsBegin + path.countVerbs();
-    SkASSERT(verbsBegin[0] == kMove_Verb);
+    SkASSERT(verbsBegin[0] == SkPath::Verb::kMove_Verb);
     const SkPoint*  pts = SkPathPriv::PointData(path) + path.countPoints() - 1;
     const SkScalar* conicWeights = SkPathPriv::ConicWeightData(path) + SkPathPriv::ConicWeightCnt(path);
 
