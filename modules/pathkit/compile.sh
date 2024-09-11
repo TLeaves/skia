@@ -79,7 +79,9 @@ NINJA=third_party/ninja/ninja
 
 echo "Compiling bitcode"
 
-./bin/fetch-gn
+if [[ ! -f ./bin/gn ]]; then
+  ./bin/fetch-gn
+fi
 
 ./bin/gn gen ${BUILD_DIR} \
   --args="skia_emsdk_dir=\"${EMSDK}\" \
