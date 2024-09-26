@@ -288,6 +288,15 @@
     };
 
     // default antialiasing radius is 0.5
+    PathKit.SkPath.prototype.toAATrianglesBuffer = function(scale, radius) {
+      if (radius === undefined) {
+        radius = 0.5;
+      }
+
+      return this._toAATrianglesBuffer(scale, radius);
+    };
+
+    // default antialiasing radius is 0.5
     PathKit.SkPath.prototype.toAABoundaryTrianglesBuffer = function(scale, radius) {
       if (radius === undefined) {
         radius = 0.5;

@@ -65,7 +65,7 @@ var PathKit = {
 		_roundRect4: function(x, y, w, h, lt, rt, rb, lb) {},
 		_toContoursBuffer: function(scale) {},
 		_toTrianglesBuffer: function(scale) {},
-		_toAATrianglesBuffer: function(scale) {},
+		_toAATrianglesBuffer: function(scale, radius) {},
 		_toAABoundaryTrianglesBuffer: function(scale, radius) {},
 	},
 
@@ -120,4 +120,5 @@ PathKit.SkPath.prototype.trim = function(startT, stopT, isComplement) {};
 PathKit.SkPath.prototype.roundRect = function(x, y, w, h, radii) {};
 PathKit.SkPath.prototype.toContours = function(scale) {};
 PathKit.SkPath.prototype.toTriangles = function(scale) {};
+PathKit.SkPath.prototype.toAATrianglesBuffer = function(scale, radius) {};
 PathKit.SkPath.prototype.toAABoundaryTrianglesBuffer = function(scale, radius) {};

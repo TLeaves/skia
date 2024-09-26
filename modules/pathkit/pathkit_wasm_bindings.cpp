@@ -365,7 +365,7 @@ JSArray EMSCRIPTEN_KEEPALIVE pathToTrianglesBuffer(const SkPath& path, SkScalar 
     return cmds;
 }
 
-JSArray EMSCRIPTEN_KEEPALIVE pathToAATrianglesBuffer(const SkPath& path, SkScalar scale) {
+JSArray EMSCRIPTEN_KEEPALIVE pathToAATrianglesBuffer(const SkPath& path, SkScalar scale, SkScalar radius) {
     JSArray cmds = emscripten::val::array();
     bool isLinear;
     SkRect clipBounds = path.getBounds();
@@ -373,7 +373,7 @@ JSArray EMSCRIPTEN_KEEPALIVE pathToAATrianglesBuffer(const SkPath& path, SkScala
     SkScalar tol = GrPathUtils::scaleToleranceToSrc(
         GrPathUtils::kDefaultTolerance, m, clipBounds);
     int vertexCount = GrAATriangulator::PathToAATriangles(
-        path, tol, clipBounds, &gAAVertexAlloc);
+        path, tol, clipBounds, &gAAVertexAlloc, nullptr, radius);
 
     // share raw points buffer to JS by Float32Array(PathKit.HEAPF32), and reuse global vertex buffer.
     SkScalar* points = reinterpret_cast<SkScalar*>(gAAVertexAlloc.fPoints.data());

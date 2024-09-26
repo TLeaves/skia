@@ -2,6 +2,10 @@
 
 Base on `pathkit-wasm/1.0.0`
 
+## [1.0.19] 2024-09-26
+
+ - add `toAATrianglesBuffer` wrapper method. support `radius` param of `_toAATrianglesBuffer`.
+
 ## [1.0.18] 2024-09-11
 
  - add `_toAABoundaryTrianglesBuffer` to SkPath, only return the antialiasing boundary triangles of path.
