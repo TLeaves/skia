@@ -224,7 +224,7 @@ bool EMSCRIPTEN_KEEPALIVE Equals(const SkPath& a, const SkPath& b) {
 }
 
 SkPathOrNull FromStrokeInk(uintptr_t stylus_point_ptr, int point_count, float line_width, int endpoint_type) {
-    using namespace inkutils;
+    using namespace utils;
 
     const StylusPoint* sps = reinterpret_cast<const StylusPoint*>(stylus_point_ptr);
     InkEndpointType type = static_cast<InkEndpointType>(endpoint_type);

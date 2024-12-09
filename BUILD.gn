@@ -1691,6 +1691,25 @@ skia_static_library("pathkit") {
   ]
 }
 
+skia_static_library("pathkit_native_extras") {
+  check_includes = false
+  public_configs = [ ":skia_public" ]
+  configs = skia_library_configs
+
+  deps = [
+    ":avx",
+    ":hsw",
+    ":ssse3",
+  ]
+
+  sources = [
+    "src/base/SkBuffer.cpp",
+    "src/core/SkData.cpp",
+    "src/ports/SkOSFile_stdio.cpp",
+    "src/ports/SkOSFile_posix.cpp",
+  ]
+}
+
 group("modules") {
   deps = [
     "modules/skottie",

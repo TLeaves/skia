@@ -5,7 +5,7 @@
 #include "src/core/SkStrokerPriv.h"
 #include "src/core/SkPaintDefaults.h"
 
-namespace inkutils {
+namespace utils {
 
 static bool set_normal_unitnormal(const SkPoint& before, const SkPoint& after, SkScalar scale,
                                   SkScalar radius,
@@ -327,6 +327,7 @@ class InkStroke {
 public:
     InkStroke();
     InkStroke(const SkPaint&);
+    InkStroke(const StrokeOpts&);
 
     SkPaint::Cap    getCap() const { return (SkPaint::Cap)fCap; }
     SkPaint::Join   getJoin() const { return (SkPaint::Join)fJoin; }
@@ -353,6 +354,14 @@ InkStroke::InkStroke(const SkPaint& p) {
     fResScale   = 1;
     fCap        = (uint8_t)p.getStrokeCap();
     fJoin       = (uint8_t)p.getStrokeJoin();
+}
+
+InkStroke::InkStroke(const StrokeOpts& opts) {
+    fWidth      = opts.width;
+    fMiterLimit = opts.miter_limit;
+    fResScale   = 1;
+    fCap        = (uint8_t)opts.cap;
+    fJoin       = (uint8_t)opts.join;
 }
 
 void InkStroke::strokeInk(const StylusPoint* stylus_point_ptr, int point_count, SkPath* dst) const {
@@ -395,6 +404,29 @@ bool StrokeInkWithPaint(
     }
 
     InkStroke stroke(paint);
+    stroke.strokeInk(stylus_point_ptr, point_count, dst);
+
+    if (!dst->isFinite()) {
+        dst->reset();
+        return false;
+    }
+
+    return true;
+}
+
+bool StrokeInkWithOpts(
+    const StylusPoint* stylus_point_ptr,
+    int point_count,
+    InkEndpointType endpoint_type,
+    const StrokeOpts &opts,
+    SkPath *dst) {
+
+    if (point_count <= 0) {
+        dst->reset();
+        return false;
+    }
+
+    InkStroke stroke(opts);
     stroke.strokeInk(stylus_point_ptr, point_count, dst);
 
     if (!dst->isFinite()) {

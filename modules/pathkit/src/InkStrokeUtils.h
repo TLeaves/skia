@@ -1,6 +1,8 @@
 #ifndef InkStrokeUtils_DEFINED
 #define InkStrokeUtils_DEFINED
 
+#include "Base.h"
+
 #include "include/core/SkScalar.h"
 #include "include/core/SkTypes.h"
 #include "include/core/SkPoint.h"
@@ -9,7 +11,7 @@ class SkPaint;
 class SkPath;
 class SkPoint;
 
-namespace inkutils {
+namespace utils {
 
 struct StylusPoint {
     SkPoint point;
@@ -41,6 +43,13 @@ SK_API bool StrokeInkWithPaint(
     int point_count,
     InkEndpointType endpoint_type,
     const SkPaint &paint,
+    SkPath *dst);
+
+SK_API bool StrokeInkWithOpts(
+    const StylusPoint* stylus_point_ptr,
+    int point_count,
+    InkEndpointType endpoint_type,
+    const StrokeOpts &opts,
     SkPath *dst);
 }
 
