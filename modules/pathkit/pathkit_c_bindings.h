@@ -15,6 +15,44 @@
 
 class SkPath;
 
+typedef struct _rect_t {
+    float x;
+    float y;
+    float width;
+    float height;
+} rect_t;
+
+//@see SkPaint::Join
+typedef enum _line_join_t {
+    LINE_JOIN_MITER,
+    LINE_JOIN_ROUND,
+    LINE_JOIN_BEVEL
+} line_join_t;
+
+// @see SkPaint::Cap
+typedef enum _line_cap_t {
+    LINE_CAP_BUTT,
+    LINE_CAP_ROUND,
+    LINE_CAP_SQUARE
+} line_cap_t;
+
+typedef struct _stroke_opts_t {
+    float width;
+    float miter_limit;
+    float res_scale;
+    line_join_t join;
+    line_cap_t cap;
+} stroke_opts_t;
+
+// @see SkPathOp
+typedef enum _path_op_t {
+    DIFFERENCE,
+    INTERSECT,
+    UNION,
+    XOR,
+    REVERSE_DIFFERENCE
+} path_op_t;
+
 //========================================================================================
 // PathKit
 //========================================================================================
@@ -35,6 +73,8 @@ extern "C" SK_API SkPath* pathkit_fromSVGString(const char* svg_string);
 extern "C" SK_API SkPath* pathkit_fromStrokeInk(
     const stylus_point_t* stylus_point_ptr, int point_count, float line_width, ink_endpoint_type_t endpoint_type);
 
+extern "C" SK_API SkPath* pathkit_makeFromOp(SkPath* pathOne, SkPath* pathTwo, path_op_t op);
+
 //========================================================================================
 // SkPath
 //========================================================================================
@@ -48,33 +88,6 @@ typedef struct _context_t {
     void (*bezierCurveTo)(void* self, float x1, float y1, float x2, float y2, float x3, float y3);
     void (*closePath)(void* self);
 } context_t;
-
-typedef struct _rect_t {
-    float x;
-    float y;
-    float width;
-    float height;
-} rect_t;
-
-typedef enum _line_join_t {
-    LINE_JOIN_MITER,
-    LINE_JOIN_ROUND,
-    LINE_JOIN_BEVEL
-} line_join_t;
-
-typedef enum _line_cap_t {
-    LINE_CAP_BUTT,
-    LINE_CAP_ROUND,
-    LINE_CAP_SQUARE
-} line_cap_t;
-
-typedef struct _stroke_opts_t {
-    float width;
-    float miter_limit;
-    float res_scale;
-    line_join_t join;
-    line_cap_t cap;
-} stroke_opts_t;
 
 extern "C" SK_API SkPath* skpath_create();
 
@@ -107,15 +120,28 @@ extern "C" SK_API void skpath_reset(SkPath* p);
 
 extern "C" SK_API void skpath_rewind(SkPath* p);
 
-extern "C" SK_API void skpath_rewind(SkPath* p);
+extern "C" SK_API bool skpath_contains(SkPath* p, float x, float y);
 
-extern "C" SK_API void skpath_simplify(SkPath* p);
+extern "C" SK_API bool skpath_isHadCurve(SkPath* p);
+
+extern "C" SK_API bool skpath_isEmpty(SkPath* p);
+
+extern "C" SK_API bool skpath_simplify(SkPath* p);
+
+extern "C" SK_API bool skpath_op(SkPath* p, SkPath* pathOther, path_op_t op);
+
+extern "C" SK_API SkPath* skpath_makeAsWinding(SkPath* p);
 
 extern "C" SK_API bool skpath_stroke(SkPath* p, stroke_opts_t opts);
 
 extern "C" SK_API rect_t skpath_getBounds(SkPath* p);
 
 extern "C" SK_API rect_t skpath_computeTightBounds(SkPath* p);
+
+extern "C" SK_API void skpath_transform(SkPath* p,
+                                        float scaleX, float skewX,  float transX,
+                                        float skewY,  float scaleY, float transY,
+                                        float pers0,  float pers1,  float pers2);
 
 extern "C" SK_API bool skpath_toSVGString(SkPath* p, char** o_str, uint32_t* o_strlen);
 

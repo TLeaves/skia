@@ -61,6 +61,17 @@ extern "C" SK_API SkPath* pathkit_fromStrokeInk(
     return nullptr;
 }
 
+extern "C" SK_API SkPath* pathkit_makeFromOp(SkPath* pathOne, SkPath* pathTwo, path_op_t op) {
+    if (!pathOne || !pathTwo) {
+        return nullptr;
+    }
+
+    SkPath* out = new SkPath();
+    if (Op(*pathOne, *pathTwo, static_cast<SkPathOp>(op), out)) {
+        return out;
+    }
+    return nullptr;
+}
 
 //========================================================================================
 // SkPath
@@ -212,12 +223,59 @@ extern "C" SK_API void skpath_rewind(SkPath* p) {
     p->rewind();
 }
 
-extern "C" SK_API void skpath_simplify(SkPath* p) {
+extern "C" SK_API bool skpath_contains(SkPath* p, float x, float y) {
     if (!p) {
-        return;
+        return false;
     }
 
-    Simplify(*p, p);
+    return p->contains(x, y);
+}
+
+extern "C" SK_API bool skpath_isHadCurve(SkPath* p) {
+    if (!p) {
+        return false;
+    }
+
+    return p->getSegmentMasks() > SkPath::kLine_SegmentMask;
+}
+
+extern "C" SK_API bool skpath_isEmpty(SkPath* p) {
+    if (!p) {
+        return false;
+    }
+
+    return p->isEmpty();
+}
+
+extern "C" SK_API bool skpath_simplify(SkPath* p) {
+    if (!p) {
+        return false;
+    }
+
+    return Simplify(*p, p);
+}
+
+extern "C" SK_API bool skpath_op(SkPath* p, SkPath* pathOther, path_op_t op) {
+    if (!p || !pathOther) {
+        return false;
+    }
+
+    return Op(*p, *pathOther, static_cast<SkPathOp>(op), p);
+}
+
+extern "C" SK_API SkPath* skpath_makeAsWinding(SkPath* p) {
+    if (!p) {
+        return nullptr;
+    }
+
+    SkPath* out = new SkPath();
+    if (AsWinding(*p, out)) {
+        return out;
+    }
+    if (out) {
+        delete out;
+    }
+    return nullptr;
 }
 
 extern "C" SK_API bool skpath_stroke(SkPath* p, stroke_opts_t opts) {
@@ -250,6 +308,20 @@ extern "C" SK_API rect_t skpath_computeTightBounds(SkPath* p) {
     
     SkRect sk_r = p->computeTightBounds();
     return { sk_r.fLeft, sk_r.fTop, sk_r.fRight - sk_r.fLeft, sk_r.fBottom - sk_r.fTop };
+}
+
+extern "C" SK_API void skpath_transform(SkPath* p,
+                                        float scaleX, float skewX,  float transX,
+                                        float skewY,  float scaleY, float transY,
+                                        float pers0,  float pers1,  float pers2) {
+    if (!p) {
+        return;
+    }
+
+    SkMatrix m = SkMatrix::MakeAll(scaleX, skewX , transX,
+                                   skewY , scaleY, transY,
+                                   pers0 , pers1 , pers2);
+    p->transform(m);
 }
 
 extern "C" SK_API bool skpath_toSVGString(SkPath* p, char** o_str, uint32_t* o_strlen) {
