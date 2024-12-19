@@ -1,14 +1,10 @@
 #!/bin/bash
-# Copyright 2018 Google LLC
-#
-# Use of this source code is governed by a BSD-style license that can be
-# found in the LICENSE file.
 
 set -ex
 
 BASE_DIR=`cd $(dirname ${BASH_SOURCE[0]}) && pwd`
 HTML_SHELL=$BASE_DIR/shell.html
-BUILD_DIR=${BUILD_DIR:="out/pathkit_lib"}
+BUILD_DIR=${BUILD_DIR:="out/pathkit_native_linux"}
 mkdir -p $BUILD_DIR
 # sometimes the .a files keep old symbols around - cleaning them out makes sure
 # we get a fresh build.
@@ -42,7 +38,6 @@ fi
 
 # Use -O0 for larger builds (but generally quicker)
 # Use -Oz for (much slower, but smaller/faster) production builds
-export EMCC_CLOSURE_ARGS="--externs $BASE_DIR/externs.js "
 RELEASE_CONF="-O2 -DSK_RELEASE"
 # It is very important for the -DSK_RELEASE/-DSK_DEBUG to match on the libskia.a, otherwise
 # things like SKDEBUGCODE are sometimes compiled in and sometimes not, which can cause headaches
@@ -55,12 +50,6 @@ elif [[ $@ == *debug* ]]; then
   echo "Building a Debug build"
   EXTRA_CFLAGS="\"-DSK_DEBUG\""
   RELEASE_CONF="-O0 -g3 -DPATHKIT_TESTING -DSK_DEBUG"
-fi
-
-WASM_CONF="-sWASM=1"
-if [[ $@ == *asm.js* ]]; then
-  echo "Building with asm.js instead of WASM"
-  WASM_CONF="-sWASM=0 -sALLOW_MEMORY_GROWTH=1"
 fi
 
 OUTPUT="-shared -o $BUILD_DIR/libpathkit.so"
@@ -77,7 +66,7 @@ if [[ ! -f ./bin/gn ]]; then
 fi
 
 ./bin/gn gen ${BUILD_DIR} \
-  --args="skia_emsdk_dir=\"${EMSDK}\" \
+  --args="\
   extra_cflags=[
     # \"-sMAIN_MODULE=1\",
     ${EXTRA_CFLAGS}
@@ -98,9 +87,9 @@ ${CXX} $RELEASE_CONF -std=c++17 \
 -I. \
 -fPIC \
 -fvisibility=hidden -fvisibility-inlines-hidden \
--fno-rtti -fno-exceptions -DEMSCRIPTEN_HAS_UNBOUND_TYPE_NAMES=0 \
+-fno-rtti -fno-exceptions \
 "-DSK_TRIVIAL_ABI=[[clang::trivial_abi]]" \
--DSKIA_DLL \
+-DPATHKIT_DLL \
 $OUTPUT \
 $BASE_DIR/src/InkStrokeUtils.cpp \
 $BASE_DIR/src/PathStrokeUtils.cpp \

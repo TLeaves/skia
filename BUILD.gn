@@ -1706,8 +1706,19 @@ skia_static_library("pathkit_native_extras") {
     "src/base/SkBuffer.cpp",
     "src/core/SkData.cpp",
     "src/ports/SkOSFile_stdio.cpp",
-    "src/ports/SkOSFile_posix.cpp",
   ]
+
+  if (is_win) {
+    sources += [ "src/ports/SkOSFile_win.cpp" ]
+  } else {
+    sources += [ "src/ports/SkOSFile_posix.cpp" ]
+  }
+
+  if (is_win) {
+    sources += [ "src/ports/SkDebug_win.cpp" ]
+  } else if (is_linux || is_wasm) {
+    sources += [ "src/ports/SkDebug_stdio.cpp" ]
+  }
 }
 
 group("modules") {
