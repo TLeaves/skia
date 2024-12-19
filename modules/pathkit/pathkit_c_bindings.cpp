@@ -32,7 +32,7 @@
 // PathKit
 //========================================================================================
 
-extern "C" SK_API SkPath* pathkit_fromSVGString(const char* svg_string) {
+extern "C" PATHKIT_API SkPath* pathkit_fromSVGString(const char* svg_string) {
     SkPath* path = new SkPath();
     if (SkParsePath::FromSVGString(svg_string, path)) {
         return path;
@@ -40,7 +40,7 @@ extern "C" SK_API SkPath* pathkit_fromSVGString(const char* svg_string) {
     return nullptr;
 }
 
-extern "C" SK_API SkPath* pathkit_fromStrokeInk(
+extern "C" PATHKIT_API SkPath* pathkit_fromStrokeInk(
     const stylus_point_t* stylus_point_ptr, int point_count, float line_width, ink_endpoint_type_t endpoint_type) {
     using namespace utils;
 
@@ -61,7 +61,7 @@ extern "C" SK_API SkPath* pathkit_fromStrokeInk(
     return nullptr;
 }
 
-extern "C" SK_API SkPath* pathkit_makeFromOp(SkPath* pathOne, SkPath* pathTwo, path_op_t op) {
+extern "C" PATHKIT_API SkPath* pathkit_makeFromOp(SkPath* pathOne, SkPath* pathTwo, path_op_t op) {
     if (!pathOne || !pathTwo) {
         return nullptr;
     }
@@ -77,11 +77,11 @@ extern "C" SK_API SkPath* pathkit_makeFromOp(SkPath* pathOne, SkPath* pathTwo, p
 // SkPath
 //========================================================================================
 
-extern "C" SK_API SkPath* skpath_create() {
+extern "C" PATHKIT_API SkPath* skpath_create() {
     return new SkPath();
 }
 
-extern "C" SK_API void skpath_destroy(SkPath* p) {
+extern "C" PATHKIT_API void skpath_destroy(SkPath* p) {
     if (!p) {
         return;
     }
@@ -89,11 +89,11 @@ extern "C" SK_API void skpath_destroy(SkPath* p) {
     delete p;
 }
 
-extern "C" SK_API SkPath* skpath_copy(SkPath* p) {
+extern "C" PATHKIT_API SkPath* skpath_copy(SkPath* p) {
     return new SkPath(*p);
 }
 
-extern "C" SK_API void skpath_traverse(SkPath* p, context_t ctx) {
+extern "C" PATHKIT_API void skpath_traverse(SkPath* p, context_t ctx) {
     if (!p) {
         return;
     }
@@ -133,7 +133,7 @@ extern "C" SK_API void skpath_traverse(SkPath* p, context_t ctx) {
     }
 }
 
-extern "C" SK_API void skpath_addPath(SkPath* origin, SkPath* newPath,
+extern "C" PATHKIT_API void skpath_addPath(SkPath* origin, SkPath* newPath,
                                         float scaleX, float skewX,  float transX,
                                         float skewY,  float scaleY, float transY,
                                         float pers0,  float pers1,  float pers2) {
@@ -147,7 +147,7 @@ extern "C" SK_API void skpath_addPath(SkPath* origin, SkPath* newPath,
     origin->addPath(*newPath, m);
 }
 
-extern "C" SK_API void skpath_moveTo(SkPath* p, float x, float y) {
+extern "C" PATHKIT_API void skpath_moveTo(SkPath* p, float x, float y) {
     if (!p) {
         return;
     }
@@ -155,7 +155,7 @@ extern "C" SK_API void skpath_moveTo(SkPath* p, float x, float y) {
     p->moveTo(x, y);
 }
 
-extern "C" SK_API void skpath_lineTo(SkPath* p, float x, float y) {
+extern "C" PATHKIT_API void skpath_lineTo(SkPath* p, float x, float y) {
     if (!p) {
         return;
     }
@@ -163,7 +163,7 @@ extern "C" SK_API void skpath_lineTo(SkPath* p, float x, float y) {
     p->lineTo(x, y);
 }
 
-extern "C" SK_API void skpath_quadTo(SkPath* p, float x1, float y1, float x2, float y2) {
+extern "C" PATHKIT_API void skpath_quadTo(SkPath* p, float x1, float y1, float x2, float y2) {
     if (!p) {
         return;
     }
@@ -171,7 +171,7 @@ extern "C" SK_API void skpath_quadTo(SkPath* p, float x1, float y1, float x2, fl
     p->quadTo(x1, y1, x2, y2);
 }
 
-extern "C" SK_API void skpath_cubicTo(SkPath* p, float x1, float y1, float x2, float y2, float x3, float y3) {
+extern "C" PATHKIT_API void skpath_cubicTo(SkPath* p, float x1, float y1, float x2, float y2, float x3, float y3) {
     if (!p) {
         return;
     }
@@ -179,7 +179,7 @@ extern "C" SK_API void skpath_cubicTo(SkPath* p, float x1, float y1, float x2, f
     p->cubicTo(x1, y1, x2, y2, x3, y3);
 }
 
-extern "C" SK_API void skpath_arc(SkPath* p, float x, float y, float radius, float startAngle, float endAngle, bool ccw) {
+extern "C" PATHKIT_API void skpath_arc(SkPath* p, float x, float y, float radius, float startAngle, float endAngle, bool ccw) {
     if (!p) {
         return;
     }
@@ -191,7 +191,7 @@ extern "C" SK_API void skpath_arc(SkPath* p, float x, float y, float radius, flo
     p->addPath(temp, SkPath::kExtend_AddPathMode);
 }
 
-extern "C" SK_API void skpath_arcTo(SkPath* p, float x1, float y1, float x2, float y2, float radius) {
+extern "C" PATHKIT_API void skpath_arcTo(SkPath* p, float x1, float y1, float x2, float y2, float radius) {
     if (!p) {
         return;
     }
@@ -199,7 +199,7 @@ extern "C" SK_API void skpath_arcTo(SkPath* p, float x1, float y1, float x2, flo
     p->arcTo(x1, y1, x2, y2, radius);
 }
 
-extern "C" SK_API void skpath_close(SkPath* p) {
+extern "C" PATHKIT_API void skpath_close(SkPath* p) {
     if (!p) {
         return;
     }
@@ -207,7 +207,7 @@ extern "C" SK_API void skpath_close(SkPath* p) {
     p->close();
 }
 
-extern "C" SK_API void skpath_reset(SkPath* p) {
+extern "C" PATHKIT_API void skpath_reset(SkPath* p) {
     if (!p) {
         return;
     }
@@ -215,7 +215,7 @@ extern "C" SK_API void skpath_reset(SkPath* p) {
     p->reset();
 }
 
-extern "C" SK_API void skpath_rewind(SkPath* p) {
+extern "C" PATHKIT_API void skpath_rewind(SkPath* p) {
     if (!p) {
         return;
     }
@@ -223,7 +223,7 @@ extern "C" SK_API void skpath_rewind(SkPath* p) {
     p->rewind();
 }
 
-extern "C" SK_API bool skpath_contains(SkPath* p, float x, float y) {
+extern "C" PATHKIT_API bool skpath_contains(SkPath* p, float x, float y) {
     if (!p) {
         return false;
     }
@@ -231,7 +231,7 @@ extern "C" SK_API bool skpath_contains(SkPath* p, float x, float y) {
     return p->contains(x, y);
 }
 
-extern "C" SK_API bool skpath_isHadCurve(SkPath* p) {
+extern "C" PATHKIT_API bool skpath_isHadCurve(SkPath* p) {
     if (!p) {
         return false;
     }
@@ -239,7 +239,7 @@ extern "C" SK_API bool skpath_isHadCurve(SkPath* p) {
     return p->getSegmentMasks() > SkPath::kLine_SegmentMask;
 }
 
-extern "C" SK_API bool skpath_isEmpty(SkPath* p) {
+extern "C" PATHKIT_API bool skpath_isEmpty(SkPath* p) {
     if (!p) {
         return false;
     }
@@ -247,7 +247,7 @@ extern "C" SK_API bool skpath_isEmpty(SkPath* p) {
     return p->isEmpty();
 }
 
-extern "C" SK_API bool skpath_simplify(SkPath* p) {
+extern "C" PATHKIT_API bool skpath_simplify(SkPath* p) {
     if (!p) {
         return false;
     }
@@ -255,7 +255,7 @@ extern "C" SK_API bool skpath_simplify(SkPath* p) {
     return Simplify(*p, p);
 }
 
-extern "C" SK_API bool skpath_op(SkPath* p, SkPath* pathOther, path_op_t op) {
+extern "C" PATHKIT_API bool skpath_op(SkPath* p, SkPath* pathOther, path_op_t op) {
     if (!p || !pathOther) {
         return false;
     }
@@ -263,7 +263,7 @@ extern "C" SK_API bool skpath_op(SkPath* p, SkPath* pathOther, path_op_t op) {
     return Op(*p, *pathOther, static_cast<SkPathOp>(op), p);
 }
 
-extern "C" SK_API SkPath* skpath_makeAsWinding(SkPath* p) {
+extern "C" PATHKIT_API SkPath* skpath_makeAsWinding(SkPath* p) {
     if (!p) {
         return nullptr;
     }
@@ -278,7 +278,7 @@ extern "C" SK_API SkPath* skpath_makeAsWinding(SkPath* p) {
     return nullptr;
 }
 
-extern "C" SK_API bool skpath_stroke(SkPath* p, stroke_opts_t opts) {
+extern "C" PATHKIT_API bool skpath_stroke(SkPath* p, stroke_opts_t opts) {
     if (!p) {
         return false;
     }
@@ -292,7 +292,7 @@ extern "C" SK_API bool skpath_stroke(SkPath* p, stroke_opts_t opts) {
     return utils::StrokePathWithOpts(*p, stroke_opts, p, nullptr, opts.res_scale);
 }
 
-extern "C" SK_API rect_t skpath_getBounds(SkPath* p) {
+extern "C" PATHKIT_API rect_t skpath_getBounds(SkPath* p) {
     if (!p) {
         return { 0, 0, 0, 0 };
     }
@@ -301,7 +301,7 @@ extern "C" SK_API rect_t skpath_getBounds(SkPath* p) {
     return { sk_r.fLeft, sk_r.fTop, sk_r.fRight - sk_r.fLeft, sk_r.fBottom - sk_r.fTop };
 }
 
-extern "C" SK_API rect_t skpath_computeTightBounds(SkPath* p) {
+extern "C" PATHKIT_API rect_t skpath_computeTightBounds(SkPath* p) {
     if (!p) {
         return { 0, 0, 0, 0 };
     }
@@ -310,7 +310,7 @@ extern "C" SK_API rect_t skpath_computeTightBounds(SkPath* p) {
     return { sk_r.fLeft, sk_r.fTop, sk_r.fRight - sk_r.fLeft, sk_r.fBottom - sk_r.fTop };
 }
 
-extern "C" SK_API void skpath_transform(SkPath* p,
+extern "C" PATHKIT_API void skpath_transform(SkPath* p,
                                         float scaleX, float skewX,  float transX,
                                         float skewY,  float scaleY, float transY,
                                         float pers0,  float pers1,  float pers2) {
@@ -324,7 +324,7 @@ extern "C" SK_API void skpath_transform(SkPath* p,
     p->transform(m);
 }
 
-extern "C" SK_API bool skpath_toSVGString(SkPath* p, char** o_str, uint32_t* o_strlen) {
+extern "C" PATHKIT_API bool skpath_toSVGString(SkPath* p, char** o_str, uint32_t* o_strlen) {
     if (!p) {
         return false;
     }

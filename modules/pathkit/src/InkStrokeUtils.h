@@ -38,14 +38,14 @@ enum InkEndpointType {
     Square,
 };
 
-SK_API bool StrokeInkWithPaint(
+PATHKIT_API bool StrokeInkWithPaint(
     const StylusPoint* stylus_point_ptr,
     int point_count,
     InkEndpointType endpoint_type,
     const SkPaint &paint,
     SkPath *dst);
 
-SK_API bool StrokeInkWithOpts(
+PATHKIT_API bool StrokeInkWithOpts(
     const StylusPoint* stylus_point_ptr,
     int point_count,
     InkEndpointType endpoint_type,

@@ -10,7 +10,7 @@ class SkRect;
 
 namespace utils {
 
-SK_API bool StrokePathWithOpts(
+PATHKIT_API bool StrokePathWithOpts(
     const SkPath& src,
     const StrokeOpts& opts,
     SkPath* dst,

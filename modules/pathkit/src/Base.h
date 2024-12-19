@@ -3,6 +3,22 @@
 
 #include "include/core/SkScalar.h"
 
+#if !defined(PATHKIT_API)
+    #if defined(PATHKIT_DLL)
+        #if defined(_MSC_VER)
+            #if SKIA_IMPLEMENTATION
+                #define PATHKIT_API __declspec(dllexport)
+            #else
+                #define PATHKIT_API __declspec(dllimport)
+            #endif
+        #else
+            #define PATHKIT_API __attribute__((visibility("default")))
+        #endif
+    #else
+        #define PATHKIT_DLL
+    #endif
+#endif
+
 namespace utils {
 
 struct StrokeOpts {
