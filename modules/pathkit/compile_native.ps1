@@ -1,6 +1,19 @@
 
+param(
+    [string]$BuildType = "",
+    [switch]$ArchX86
+)
+
 $BASE_DIR = $Pwd
 $BUILD_DIR = "out/pathkit_native_win"
+
+$GN_ARCH = "x64"
+$CLANG_ARCH = ""
+if ($ArchX86) {
+    $GN_ARCH = "x86"
+    $CLANG_ARCH = "-m32"
+    $BUILD_DIR = "out/pathkit_native_win_x86"
+}
 
 New-Item -Type Directory -Force $BUILD_DIR
 
@@ -30,10 +43,6 @@ if (!(Test-Path -Path "./src")) {
     exit 1
 }
 
-if ($Args.Count -gt 0) {
-    $BUILD_ARG0 = $args[0]
-}
-
 # Use -O0 for larger builds (but generally quicker)
 # Use -Oz for (much slower, but smaller/faster) production builds
 $RELEASE_CONF="-O2 -DSK_RELEASE"
@@ -41,10 +50,10 @@ $RELEASE_CONF="-O2 -DSK_RELEASE"
 # things like SKDEBUGCODE are sometimes compiled in and sometimes not, which can cause headaches
 # like sizeof() mismatching between .cpp files and .h files.
 $EXTRA_CFLAGS="\`"-DSK_RELEASE\`""
-if ($BUILD_ARG0 -contains "test") {
+if ($BuildType -contains "test") {
     echo "Building a Testing/Profiling build"
     $RELEASE_CONF="-O2 -DPATHKIT_TESTING -DSK_RELEASE"
-} elseif ($BUILD_ARG0 -contains "debug") {
+} elseif ($BuildType -contains "debug") {
     echo "Building a Debug build"
     $EXTRA_CFLAGS="\`"-DSK_DEBUG\`""
     $RELEASE_CONF="-O0 -g3 -DPATHKIT_TESTING -DSK_DEBUG"
@@ -78,7 +87,7 @@ if (!(Test-Path -Path "./bin/gn.exe")) {
   is_trivial_abi=true `
   is_component_build=false `
   werror=true `
-  target_cpu=\`"x64\`" "`"
+  target_cpu=\`"$GN_ARCH\`" "`"
 
 . $NINJA -C $BUILD_DIR pathkit.lib
 . $NINJA -C $BUILD_DIR pathkit_native_extras.lib
@@ -86,6 +95,7 @@ if (!(Test-Path -Path "./bin/gn.exe")) {
 echo "Generating Lib"
 
 . $CXX $RELEASE_CONF.Split() -std=c++17 `
+$CLANG_ARCH `
 -I. `
 -fvisibility=hidden -fvisibility-inlines-hidden `
 -fno-rtti -fno-exceptions `
