@@ -15,7 +15,7 @@
             #define PATHKIT_API __attribute__((visibility("default")))
         #endif
     #else
-        #define PATHKIT_DLL
+        #define PATHKIT_API
     #endif
 #endif
 

@@ -13,7 +13,7 @@
             #define PATHKIT_API __attribute__((visibility("default")))
         #endif
     #else
-        #define PATHKIT_DLL
+        #define PATHKIT_API
     #endif
 #endif
 
@@ -50,11 +50,11 @@ typedef struct _stroke_opts_t {
 
 // @see SkPathOp
 typedef enum _path_op_t {
-    DIFFERENCE,
-    INTERSECT,
-    UNION,
-    XOR,
-    REVERSE_DIFFERENCE
+    PATH_OP_DIFFERENCE,
+    PATH_OP_INTERSECT,
+    PATH_OP_UNION,
+    PATH_OP_XOR,
+    PATH_OP_REVERSE_DIFFERENCE
 } path_op_t;
 
 //========================================================================================
